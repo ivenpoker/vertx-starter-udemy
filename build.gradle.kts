@@ -38,7 +38,13 @@ dependencies {
     implementation(platform("io.vertx:vertx-stack-depchain:$vertxVersion"))
     implementation("io.vertx:vertx-core:4.1.5")
 
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.11.4")
+    // Productivity dependencies
+    implementation("org.apache.commons:commons-lang3:3.12.0")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.3")
+    implementation("com.fasterxml.uuid:java-uuid-generator:4.0.1")
+    implementation("com.jayway.jsonpath:json-path:2.5.0")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.13.0")
+    implementation("com.jayway.jsonpath:json-path:2.5.0")
 
     // web
     implementation("io.vertx:vertx-web-client:4.1.5")

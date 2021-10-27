@@ -1,8 +1,11 @@
 package com.study.udemy.customcodec;
 
+import com.study.udemy.commons.JsonMapper;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,8 +28,12 @@ public class PingPongExample {
             var eventBus = vertx.eventBus();
             var message = new Ping("Hello", true);
             LOGGER.debug("Sending: {}", message);
-            eventBus.<Pong>request(ADDRESS, message)
-                .onSuccess(reply -> LOGGER.debug("Response: {}", reply.body()))
+            eventBus.<JsonObject>request(ADDRESS, JsonObject.mapFrom(message))
+                .onSuccess(reply -> JsonMapper.fromJson(reply.body(), Pong.class)
+                    .flatMap(pong -> {
+                        LOGGER.debug("Response: {}", pong);
+                        return Future.succeededFuture(pong);
+                    }))
                 .onFailure(error -> LOGGER.error("Response failure: {}", error.getMessage()));
         }
     }
@@ -37,10 +44,13 @@ public class PingPongExample {
         @Override
         public void start(Promise<Void> startPromise) throws Exception {
             startPromise.complete();
-            vertx.eventBus().<Ping>consumer(PingVerticle.ADDRESS, message -> {
-                    LOGGER.debug("Received Message: {}", message.body());
-                    message.reply(new Pong(0));
-                })
+            vertx.eventBus().<JsonObject>consumer(PingVerticle.ADDRESS, message ->
+                    JsonMapper.fromJson(message.body(), Ping.class)
+                        .flatMap(ping -> {
+                            LOGGER.debug("Received Message: {}", ping);
+                            return Future.succeededFuture(ping);
+                        })
+                        .onSuccess(_noUse -> message.reply(JsonObject.mapFrom(new Pong(0)))))
                 .exceptionHandler(error -> LOGGER.error("Consumption at {} failed: {}",
                     PingVerticle.ADDRESS, error.getMessage()));
         }
