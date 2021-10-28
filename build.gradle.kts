@@ -6,6 +6,7 @@ plugins {
     application
     id("com.github.johnrengelman.shadow") version "7.0.0"
     id("io.spring.dependency-management") version "1.0.1.RELEASE"
+    id("com.google.cloud.tools.jib") version "2.7.1"
 }
 
 group = "com.study.udemy"
@@ -18,7 +19,7 @@ repositories {
 val vertxVersion = "4.1.5"
 val junitJupiterVersion = "5.8.1"
 
-val mainVerticleName = "com.study.udemy.vertx_starter.MainVerticle"
+val mainVerticleName = "com.study.udemy.MainVerticle"
 val launcherClassName = "io.vertx.core.Launcher"
 
 val watchForChange = "src/**/*"
@@ -40,11 +41,11 @@ dependencies {
 
     // Productivity dependencies
     implementation("org.apache.commons:commons-lang3:3.12.0")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.3")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.0")
     implementation("com.fasterxml.uuid:java-uuid-generator:4.0.1")
-    implementation("com.jayway.jsonpath:json-path:2.5.0")
+    implementation("com.jayway.jsonpath:json-path:2.6.0")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.13.0")
-    implementation("com.jayway.jsonpath:json-path:2.5.0")
+    implementation("com.jayway.jsonpath:json-path:2.6.0")
 
     // web
     implementation("io.vertx:vertx-web-client:4.1.5")
@@ -65,8 +66,23 @@ dependencies {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_15
-    targetCompatibility = JavaVersion.VERSION_15
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+
+jib {
+    from {
+        image = "adoptopenjdk:15-jre-hotspot"
+    }
+    to {
+        image = "example/jib/vertx-starter"
+    }
+    container {
+        mainClass = "io.vertx.core.Launcher"
+        args = listOf("run", mainVerticleName)
+        ports = listOf("9999")
+    }
 }
 
 tasks.withType<ShadowJar> {
@@ -77,8 +93,13 @@ tasks.withType<ShadowJar> {
     mergeServiceFiles()
 }
 
+tasks.withType<JavaCompile> {
+    options.compilerArgs.add("--enable-preview")
+}
+
 tasks.withType<Test> {
     useJUnitPlatform()
+    jvmArgs("--enable-preview")
     testLogging {
         events = setOf(PASSED, SKIPPED, FAILED)
     }
