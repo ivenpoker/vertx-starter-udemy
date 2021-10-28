@@ -6,6 +6,7 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.RoutingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,34 +47,44 @@ public class MainVerticle extends AbstractVerticle {
         LOGGER.debug("Exception on route", throwable);
     }
 
+    static void apiRequestFailureHandler(RoutingContext routingContext) {
+        if (routingContext.response().ended()) {
+            return;
+        }
+        routingContext.response()
+            .setStatusCode(500)
+            .end(new JsonObject().put("message", "Something went wrong :(").toBuffer());
+    }
+
+    static void handleServerFailure(Throwable throwable) {
+        LOGGER.error("Failed to start server", throwable);
+    }
+
+
+
     @Override
     public void start(Promise<Void> startPromise) throws Exception {
         LOGGER.info("in start(...)");
 
         final Router restApi = Router.router(vertx);
 
-        restApi.route().failureHandler(routingContext -> {
-            if (routingContext.response().ended()) {
-                return;
-            }
-            routingContext.response()
-                .setStatusCode(500)
-                .end(new JsonObject().put("message", "Something went wrong :(").toBuffer());
-        });
-
         AssetsRestApi.create(restApi);
+
+        restApi.route().handler(routingContext ->
+                routingContext.response().end(
+                        new JsonObject().put("error", "NotFound").encode()));
+
+        // default failure handler for all unhandle requests
+        restApi.route().failureHandler(MainVerticle::apiRequestFailureHandler);
 
         vertx.createHttpServer()
             .requestHandler(restApi)
             .exceptionHandler(MainVerticle::routeExceptionHandler)
-            .listen(9999, http -> {
-                if (http.succeeded()) {
-                    startPromise.complete();
-                    LOGGER.info("HTTP server started on port 9999");
-                } else {
-                    LOGGER.error("HTTP Server Failed To Start: {}", http.cause().getMessage());
-                    startPromise.fail(http.cause());
-                }
-            });
+            .listen(9999)
+            .onSuccess(_httpServer -> {
+                LOGGER.info("HTTP Server started on port 9999");
+                startPromise.complete();
+            })
+            .onFailure(MainVerticle::handleServerFailure);
     }
 }

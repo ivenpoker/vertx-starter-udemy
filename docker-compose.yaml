@@ -1,0 +1,14 @@
+version: "3"
+
+volumes:
+  vertxStarterData:
+    driver: local
+
+services:
+  vertx_starter_service:
+    image: example/jib/vertx-starter
+    ports:
+      - 9999:9999
+    volumes:
+      - vertxStarterData:/var/lib/
+

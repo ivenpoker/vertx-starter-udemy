@@ -2,7 +2,7 @@
 # - docker build -t example/vertx-starter .
 # - docker run -it -p 9999:9999 example/vertx-starter --name vertx-starter-container
 
-FROM adoptopenjdk:15-jre-hotspot
+FROM amazoncorretto:17-alpine
 
 ENV FAT_JAR vertx-starter-1.0.0-SNAPSHOT-fat.jar
 ENV APP_HOME /usr/app

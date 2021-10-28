@@ -46,8 +46,9 @@ dependencies {
     implementation("com.jayway.jsonpath:json-path:2.6.0")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.13.0")
     implementation("com.jayway.jsonpath:json-path:2.6.0")
+    implementation("org.jetbrains:annotations:22.0.0")
 
-    // web
+    // Vertx web
     implementation("io.vertx:vertx-web-client:4.1.5")
     implementation("io.vertx:vertx-web:4.1.5")
     implementation("io.vertx:vertx-web-openapi:4.1.5")
@@ -60,7 +61,6 @@ dependencies {
     implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.14.1")
     implementation("org.slf4j:slf4j-api:1.7.32")
 
-    implementation("org.jetbrains:annotations:22.0.0")
     testImplementation("io.vertx:vertx-junit5:4.1.5")
     testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
 }
@@ -73,7 +73,7 @@ java {
 
 jib {
     from {
-        image = "adoptopenjdk:15-jre-hotspot"
+        image = "amazoncorretto:17-alpine"
     }
     to {
         image = "example/jib/vertx-starter"
